@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Is Google Down?</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&family=Space+Mono&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0a0f0a;
+      --surface: #111811;
+      --border: #1e2b1e;
+      --green: #22c55e;
+      --green-glow: rgba(34,197,94,0.18);
+      --green-dim: #15803d;
+      --text: #e2f0e2;
+      --muted: #5a7a5a;
+      --dot-size: 10px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Space Grotesk', sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+      overflow: hidden;
+    }
+
+    /* Subtle grid background */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.5;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .card {
+      position: relative;
+      z-index: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 3rem 3.5rem;
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+      box-shadow:
+        0 0 0 1px var(--green-glow),
+        0 0 60px var(--green-glow),
+        0 24px 80px rgba(0,0,0,0.6);
+    }
+
+    .label {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 2rem;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.55rem;
+      margin-bottom: 2.5rem;
+    }
+
+    .logo-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+    }
+
+    .g-blue   { background: #4285f4; }
+    .g-red    { background: #ea4335; }
+    .g-yellow { background: #fbbc05; }
+    .g-green  { background: #34a853; }
+
+    .question {
+      font-size: 2rem;
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 2.5rem;
+      color: var(--text);
+      letter-spacing: -0.02em;
+    }
+
+    /* The big status indicator */
+    .status-ring {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      border: 2px solid var(--green-dim);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 2rem;
+      position: relative;
+      box-shadow: 0 0 40px var(--green-glow), inset 0 0 30px var(--green-glow);
+      animation: pulse-ring 3s ease-in-out infinite;
+    }
+
+    .status-ring::before {
+      content: '';
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      border: 1px solid var(--green-dim);
+      opacity: 0.4;
+      animation: pulse-ring 3s ease-in-out infinite 0.5s;
+    }
+
+    .checkmark {
+      font-size: 3rem;
+      line-height: 1;
+      animation: pop-in 0.6s cubic-bezier(0.34,1.56,0.64,1) both;
+    }
+
+    .status-text {
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--green);
+      letter-spacing: -0.03em;
+      margin-bottom: 0.5rem;
+      text-shadow: 0 0 24px var(--green-glow);
+    }
+
+    .status-sub {
+      font-family: 'Space Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      margin-bottom: 2.5rem;
+    }
+
+    .metrics {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 1px;
+      background: var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+
+    .metric {
+      background: var(--surface);
+      padding: 1rem 0.5rem;
+    }
+
+    .metric-val {
+      font-family: 'Space Mono', monospace;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: var(--green);
+      display: block;
+    }
+
+    .metric-label {
+      font-size: 0.65rem;
+      color: var(--muted);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-top: 0.2rem;
+      display: block;
+    }
+
+    .live-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.06em;
+    }
+
+    .live-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 8px var(--green);
+      animation: blink 1.4s ease-in-out infinite;
+    }
+
+    /* Animations */
+    @keyframes pulse-ring {
+      0%, 100% { box-shadow: 0 0 40px var(--green-glow), inset 0 0 30px var(--green-glow); }
+      50%       { box-shadow: 0 0 70px rgba(34,197,94,0.28), inset 0 0 40px rgba(34,197,94,0.12); }
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+
+    @keyframes pop-in {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    /* Ticking clock for "last checked" */
+    .footer {
+      margin-top: 3rem;
+      font-size: 0.68rem;
+      color: var(--muted);
+      font-family: 'Space Mono', monospace;
+      letter-spacing: 0.05em;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 2rem 1.5rem; }
+      .question { font-size: 1.6rem; }
+      .status-text { font-size: 2rem; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <div class="label">Status Monitor</div>
+
+    <div class="logo" aria-label="Google logo dots">
+      <div class="logo-dot g-blue"></div>
+      <div class="logo-dot g-red"></div>
+      <div class="logo-dot g-yellow"></div>
+      <div class="logo-dot g-green"></div>
+    </div>
+
+    <h1 class="question">Is Google down?</h1>
+
+    <div class="status-ring" role="img" aria-label="Google is up">
+      <span class="checkmark">✓</span>
+    </div>
+
+    <div class="status-text">Nope.</div>
+    <div class="status-sub">Google is up and running normally.</div>
+
+    <div class="metrics">
+      <div class="metric">
+        <span class="metric-val" id="response-time">12ms</span>
+        <span class="metric-label">Response</span>
+      </div>
+      <div class="metric">
+        <span class="metric-val">100%</span>
+        <span class="metric-label">Uptime</span>
+      </div>
+      <div class="metric">
+        <span class="metric-val" id="checks-done">1</span>
+        <span class="metric-label">Checks</span>
+      </div>
+    </div>
+
+    <div class="live-bar">
+      <div class="live-dot"></div>
+      <span>Monitoring live · Last checked <span id="last-checked">just now</span></span>
+    </div>
+  </div>
+
+  <div class="footer">isgoogledown.github.io · always has been 🌍</div>
+
+  <script>
+    // Fake-but-convincing live metrics
+    let checks = 1;
+    const responseEl = document.getElementById('response-time');
+    const checksEl   = document.getElementById('checks-done');
+    const lastEl     = document.getElementById('last-checked');
+
+    function randomBetween(a, b) {
+      return Math.floor(Math.random() * (b - a + 1)) + a;
+    }
+
+    function runCheck() {
+      checks++;
+      checksEl.textContent = checks;
+      responseEl.textContent = randomBetween(9, 28) + 'ms';
+      lastEl.textContent = 'just now';
+    }
+
+    function tickLastChecked() {
+      // counts up seconds since last check, resets every ~12s
+      let secs = 0;
+      const interval = setInterval(() => {
+        secs++;
+        if (secs >= 12) {
+          runCheck();
+          secs = 0;
+        } else if (secs === 1) {
+          lastEl.textContent = '1 second ago';
+        } else {
+          lastEl.textContent = secs + ' seconds ago';
+        }
+      }, 1000);
+    }
+
+    tickLastChecked();
+  </script>
+</body>
+</html>
